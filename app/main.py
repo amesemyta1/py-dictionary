@@ -57,8 +57,7 @@ class Dictionary:
 
         while (
             (node := self._table[index]) is not None
-            and node is not self._DELETED
-            and node.key != key
+            and (node.hash_value != hash_value or node.key != key)
         ):
             index = self._linear_probing(index)
 
