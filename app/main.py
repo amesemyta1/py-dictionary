@@ -16,8 +16,8 @@ class Dictionary:
     _DELETED = object()
 
     def __init__(self) -> None:
-        self._table: list[Node | None] = [None] * self.INITIAL_CAPACITY
-        self._size = 0
+        self.hash_table: list[Node | None] = [None] * self.INITIAL_CAPACITY
+        self.length = 0
         self._capacity = self.INITIAL_CAPACITY
 
     @property
@@ -32,20 +32,19 @@ class Dictionary:
         index = hash_value % self._capacity
 
         while (
-            (node := self._table[index]) is not None
-            and node.hash_value != hash_value
-            and node.key != key
+            (node := self.hash_table[index]) is not None
+            and (node.hash_value != hash_value or node.key != key)
         ):
             index = self._linear_probing(index)
 
         return index
 
     def _resize(self) -> None:
-        old_table = self._table
+        old_table = self.hash_table
 
         self._capacity *= self.CAPACITY_MULTIPLIER
-        self._table = [None] * self._capacity
-        self._size = 0
+        self.hash_table = [None] * self._capacity
+        self.length = 0
 
         for node in old_table:
             if node is not None:
@@ -56,18 +55,18 @@ class Dictionary:
         index = hash_value % self._capacity
 
         while (
-            (node := self._table[index]) is not None
+            (node := self.hash_table[index]) is not None
             and (node.hash_value != hash_value or node.key != key)
         ):
             index = self._linear_probing(index)
 
-        if self._table[index] is None:
-            self._table[index] = Node(key, value, hash_value)
-            self._size += 1
+        if self.hash_table[index] is None:
+            self.hash_table[index] = Node(key, value, hash_value)
+            self.length += 1
         else:
-            self._table[index].value = value
+            self.hash_table[index].value = value
 
-        if self._size >= self._threshold:
+        if self.length >= self._threshold:
             self._resize()
 
     def __getitem__(self, key: Hashable) -> Any:
@@ -75,7 +74,7 @@ class Dictionary:
         index = hash_value % self._capacity
 
         while (
-                (node := self._table[index]) is not None
+                (node := self.hash_table[index]) is not None
         ):
             if node.key == key:
                 return node.value
@@ -84,16 +83,16 @@ class Dictionary:
         raise KeyError(key)
 
     def __len__(self) -> int:
-        return self._size
+        return self.length
 
     def __delitem__(self, key: Hashable) -> None:
         hash_value = hash(key)
         index = hash_value % self._capacity
 
-        while (node := self._table[index]) is not None:
+        while (node := self.hash_table[index]) is not None:
             if node is not self._DELETED and node.key == key:
-                self._table[index] = self._DELETED
-                self._size -= 1
+                self.hash_table[index] = self._DELETED
+                self.length -= 1
                 return
             index = self._linear_probing(index)
 
